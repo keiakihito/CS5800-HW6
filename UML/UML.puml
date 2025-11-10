@@ -1,0 +1,67 @@
+  @startuml
+  interface IterableByUser {
+      +iterator(userToSearchWith : User) : Iterator
+  }
+
+  class ChatServer {
+      -users : Map<String, User>
+      -blocks : Map<User, Set<User>>
+      +register(user : User)
+      +send(sender : User, targets : List<User>, content : String)
+      +block(blocker : User, target : User)
+      +undoLast(sender : User)
+  }
+
+  class User {
+      -name : String
+      -chatHistory : ChatHistory
+      -mediator : ChatServer
+      +send(to : List<User>, content : String)
+      +receive(message : Message)
+      +block(user : User)
+      +undoLastMessage()
+      +historyFor(user : User) : Iterator
+  }
+
+  class ChatHistory implements IterableByUser {
+      -entries : List<Message>
+      -undoStack : Deque<MessageMemento>
+      +append(message : Message)
+      +lastSentMemento() : MessageMemento
+      +saveMemento(m : MessageMemento)
+      +iterator(userToSearchWith : User) : Iterator
+  }
+
+  class SearchMessagesByUser {
+      -history : List<Message>
+      -target : User
+      -cursor : int
+      +hasNext() : boolean
+      +next() : Message
+  }
+
+  class Message {
+      -sender : User
+      -recipients : List<User>
+      -timestamp : Instant
+      -content : String
+      +createMemento() : MessageMemento
+      +restore(m : MessageMemento)
+  }
+
+  class MessageMemento {
+      #timestamp : Instant
+      #content : String
+      +getSummary() : String
+  }
+
+  ChatServer o-- User
+  User *-- ChatHistory
+  ChatHistory o-- Message
+  Message ..> MessageMemento : creates/restores
+  ChatHistory ..> MessageMemento : caretaker
+  ChatHistory ..> SearchMessagesByUser : creates
+  SearchMessagesByUser ..|> Iterator
+  ChatHistory ..|> IterableByUser
+  User ..> ChatServer : all sends/blocks
+  @enduml
