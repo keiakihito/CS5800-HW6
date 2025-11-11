@@ -2,13 +2,16 @@ package chat;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Mediator implementation coordinating chat users. */
 public class ChatServer {
 
     private final Map<String, User> users = new HashMap<>();
+    private final Map<User, Set<User>> blockedByUser = new HashMap<>();
 
     public void register(User user) {
         if (shouldSkipOperation(user, "registration")) {
@@ -82,7 +85,9 @@ public class ChatServer {
     private void sendMessageToRecipients(User sender, List<User> recipients, String content) {
         Message message = new Message(sender, List.copyOf(recipients), Instant.now(), content);
         for (User recipient : recipients) {
-            recipient.receive(message);
+            if (!isBlocked(recipient, sender)) {
+                recipient.receive(message);
+            }
         }
     }
 
@@ -94,7 +99,30 @@ public class ChatServer {
     }
 
     public void block(User blocker, User target) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ensureBothUsersRegistered(blocker, target);
+        validateNotSelfBlock(blocker, target);
+        Set<User> blockedUsers = getBlockedUsersSet(blocker);
+        blockedUsers.add(target);
+    }
+
+    private Set<User> getBlockedUsersSet(User blocker) {
+        Set<User> blockedUsers = blockedByUser.get(blocker);
+        if (blockedUsers == null) {
+            blockedUsers = new HashSet<>();
+            blockedByUser.put(blocker, blockedUsers);
+        }
+        return blockedUsers;
+    }
+
+    private void ensureBothUsersRegistered(User blocker, User target) {
+        ensureRegistered(blocker);
+        ensureRegistered(target);
+    }
+
+    private void validateNotSelfBlock(User blocker, User target) {
+        if (blocker.equals(target)) {
+            throw new IllegalArgumentException("Cannot block yourself");
+        }
     }
 
     public void undoLast(User user) {
@@ -132,5 +160,7 @@ public class ChatServer {
         }
     }
 
-
+    private boolean isBlocked(User recipient, User sender) {
+        return blockedByUser.getOrDefault(recipient, Set.of()).contains(sender);
+    }
 }

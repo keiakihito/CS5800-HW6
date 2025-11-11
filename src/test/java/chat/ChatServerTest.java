@@ -101,6 +101,29 @@ class ChatServerTest {
         assertThrows(IllegalStateException.class, () -> server.undoLast(sender));
     }
 
+    @Test
+    void blockPreventDeliveryFromBlockedSender() {
+        ChatServer server = new ChatServer();
+        TestSinkUser sender = new TestSinkUser("sender");
+        TestSinkUser recipient = new TestSinkUser("recipient");
+        server.register(sender);
+        server.register(recipient);
+
+        server.block(recipient, sender);
+        server.deliver(sender, List.of(recipient), "blocked message");
+
+        assertNull(recipient.lastMessageContent, "blocked recipient should not receive message");
+    }
+
+    @Test
+    void blockSelfNotAllowed() {
+        ChatServer server = new ChatServer();
+        User user = new User("self");
+        server.register(user);
+
+        assertThrows(IllegalArgumentException.class, () -> server.block(user, user));
+    }
+
     /**
      * Message sink: dummy user that only absorbs mediator deliveries so tests can inspect sender/content.
      * Not related to sockets or concurrency—it's just a bucket to capture what ChatServer.deliver(...) emits.
