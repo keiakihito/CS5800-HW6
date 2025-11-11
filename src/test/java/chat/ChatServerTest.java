@@ -1,7 +1,9 @@
 package chat;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,5 +39,54 @@ class ChatServerTest {
         server.register(user);
 
         assertThrows(IllegalArgumentException.class, () -> server.register(user));
+    }
+
+    @Test
+    void deliverNotifiesAllRecipients() {
+        ChatServer server = new ChatServer();
+        TestSinkUser sender = new TestSinkUser("Aiko Tokumoto");
+        TestSinkUser receiver1 = new TestSinkUser("Receiver1");
+        TestSinkUser receiver2 = new TestSinkUser("Receiver2");
+        server.register(sender);
+        server.register(receiver1);
+        server.register(receiver2);
+
+        server.deliver(sender, List.of(receiver1, receiver2), "Hi team");
+
+        assertEquals("Hi team", receiver1.lastMessageContent);
+        assertEquals(sender, receiver1.lastSender);
+        assertEquals("Hi team", receiver2.lastMessageContent);
+        assertEquals(sender, receiver2.lastSender);
+    }
+
+    @Test
+    void deliverFailsIfRecipientNotRegistered() {
+        ChatServer server = new ChatServer();
+        TestSinkUser sender = new TestSinkUser("sender");
+        TestSinkUser receiver1 = new TestSinkUser("Receiver1"); // not registered
+        server.register(sender);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> server.deliver(sender, List.of(receiver1), "Hi"),
+                "unregistered recipient should cause failure");
+    }
+
+    /**
+     * Message sink: dummy user that only absorbs mediator deliveries so tests can inspect sender/content.
+     * Not related to sockets or concurrency—it's just a bucket to capture what ChatServer.deliver(...) emits.
+     */
+    private static class TestSinkUser extends User {
+        private String lastMessageContent;
+        private User lastSender;
+
+        private TestSinkUser(String name) {
+            super(name);
+        }
+
+        @Override
+        public void receive(Message message) {
+            this.lastMessageContent = message.getContent();
+            this.lastSender = message.getSender();
+        }
     }
 }
