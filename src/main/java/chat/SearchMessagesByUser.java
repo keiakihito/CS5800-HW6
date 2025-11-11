@@ -14,7 +14,7 @@ public class SearchMessagesByUser implements Iterator<Message> {
     public SearchMessagesByUser(List<Message> history, User target) {
         this.history = history;
         this.target = target;
-        advance();
+        updateNextMatch();
     }
 
     @Override
@@ -24,22 +24,35 @@ public class SearchMessagesByUser implements Iterator<Message> {
 
     @Override
     public Message next() {
-        if (nextMatch == null) {
-            throw new NoSuchElementException("No more matching messages");
-        }
+        ensureNextMatchAvailable();
         Message current = nextMatch;
-        advance();
+        updateNextMatch();
         return current;
     }
 
-    private void advance() {
-        nextMatch = null;
-        while (cursor < history.size()) {
-            Message candidate = history.get(cursor++);
-            if (candidate.getSender().equals(target) || candidate.getRecipients().contains(target)) {
-                nextMatch = candidate;
-                break;
-            }
+    private void ensureNextMatchAvailable() {
+        if (nextMatch == null) {
+            throw new NoSuchElementException("No more matching messages");
         }
     }
+
+    private void updateNextMatch() {
+        nextMatch = findNextMatchingMessage();
+    }
+
+    private Message findNextMatchingMessage() {
+        while (cursor < history.size()) {
+            Message candidate = history.get(cursor++);
+            if (matchesTarget(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private boolean matchesTarget(Message candidate) {
+        return candidate.getSender().equals(target)
+                || candidate.getRecipients().contains(target);
+    }
 }
+
