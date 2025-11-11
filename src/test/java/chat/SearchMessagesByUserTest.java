@@ -12,17 +12,17 @@ class SearchMessagesByUserTest {
 
     @Test
     void iteratorReturnsOnlyMessagesWithTargetUser() {
-        User alpha = new User("alpha");
-        User beta = new User("beta");
-        User gamma = new User("gamma");
-        Message m1 = new Message(alpha, List.of(beta), Instant.EPOCH, "alpha->beta");
-        Message m2 = new Message(beta, List.of(gamma), Instant.EPOCH.plusSeconds(1), "beta->gamma");
-        Message m3 = new Message(gamma, List.of(alpha, beta), Instant.EPOCH.plusSeconds(2), "group");
+        User aiko = new User("Aiko Tokumoto");
+        User taro = new User("Taro Yamada");
+        User jiro = new User("Jiro Yoshida");
+        Message m1 = new Message(aiko, List.of(taro), Instant.EPOCH, "aiko->taro");
+        Message m2 = new Message(taro, List.of(jiro), Instant.EPOCH.plusSeconds(1), "taro->jiro");
+        Message m3 = new Message(jiro, List.of(aiko, taro), Instant.EPOCH.plusSeconds(2), "group");
 
-        SearchMessagesByUser iterator = new SearchMessagesByUser(List.of(m1, m2, m3), beta);
+        SearchMessagesByUser iterator = new SearchMessagesByUser(List.of(m1, m2, m3), jiro);
 
         assertTrue(iterator.hasNext());
-        assertEquals("alpha->beta", iterator.next().getContent());
+        assertEquals("taro->jiro", iterator.next().getContent());
         assertTrue(iterator.hasNext());
         assertEquals("group", iterator.next().getContent());
         assertFalse(iterator.hasNext());
@@ -30,11 +30,12 @@ class SearchMessagesByUserTest {
 
     @Test
     void iteratorHandlesNoMatches() {
-        User alpha = new User("alpha");
-        User beta = new User("beta");
-        Message m1 = new Message(alpha, List.of(alpha), Instant.EPOCH, "self");
+        User aiko = new User("Aiko Tokumoto");
+        User taro = new User("Taro Yamada");
+        User jiro = new User("Jiro Yoshida");
+        Message m1 = new Message(aiko, List.of(taro), Instant.EPOCH, "aiko->taro");
 
-        SearchMessagesByUser iterator = new SearchMessagesByUser(List.of(m1), beta);
+        SearchMessagesByUser iterator = new SearchMessagesByUser(List.of(m1), jiro);
 
         assertFalse(iterator.hasNext());
     }
