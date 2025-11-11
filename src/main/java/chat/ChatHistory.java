@@ -86,22 +86,6 @@ public class ChatHistory implements IterableByUser {
 
     @Override
     public Iterator<Message> iterator(User userToSearchWith) {
-        List<Message> filteredMessages = filterMessagesForUser(userToSearchWith);
-        return filteredMessages.iterator();
-    }
-
-    private List<Message> filterMessagesForUser(User userToSearchWith) {
-        List<Message> filteredMessages = new ArrayList<>();
-        for (Message message : entries) {
-            if (isMessageRelatedToUser(message, userToSearchWith)) {
-                filteredMessages.add(message);
-            }
-        }
-        return filteredMessages;
-    }
-
-    private boolean isMessageRelatedToUser(Message message, User userToSearchWith) {
-        return message.getSender().equals(userToSearchWith)
-                || message.getRecipients().contains(userToSearchWith);
+        return new SearchMessagesByUser(entries, userToSearchWith);
     }
 }
