@@ -40,4 +40,16 @@ class ChatHistoryTest {
         assertEquals("hello", iterator.next().getContent());
         assertFalse(iterator.hasNext());
     }
+
+    @Test
+    void snapshotStackTracksLatestMemento() {
+        ChatHistory history = new ChatHistory();
+        MessageMemento first = new MessageMemento(Instant.EPOCH, "first");
+        MessageMemento second = new MessageMemento(Instant.EPOCH.plusSeconds(5), "later");
+
+        history.saveSnapshot(first);
+        history.saveSnapshot(second);
+
+        assertEquals(second, history.lastSentSnapshot());
+    }
 }
