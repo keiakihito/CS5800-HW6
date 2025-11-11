@@ -84,6 +84,8 @@ public class ChatServer {
 
     private void sendMessageToRecipients(User sender, List<User> recipients, String content) {
         Message message = new Message(sender, List.copyOf(recipients), Instant.now(), content);
+        sender.getHistory().append(message);
+        sender.getHistory().saveSnapshot(message.createMemento());
         for (User recipient : recipients) {
             if (!isBlocked(recipient, sender)) {
                 recipient.receive(message);

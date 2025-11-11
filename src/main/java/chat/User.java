@@ -25,7 +25,9 @@ public class User {
     }
 
     public void join(ChatServer server) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        Objects.requireNonNull(server, "server");
+        this.mediator = server;
+        server.register(this);
     }
 
     public void sendTo(User recipient, String content) {
@@ -33,22 +35,32 @@ public class User {
     }
 
     public void sendToMany(List<User> recipients, String content) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (recipients == null || recipients.isEmpty()) {
+            throw new IllegalArgumentException("Recipients required");
+        }
+        ensureMediator().deliver(this, List.copyOf(recipients), content);
     }
 
     public void receive(Message message) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        history.append(message);
     }
 
     public void block(User target) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ensureMediator().block(this, target);
     }
 
     public void undoLastMessage() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ensureMediator().undoLast(this);
     }
 
     public Iterator<Message> historyFor(User target) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return history.iterator(target);
+    }
+
+    private ChatServer ensureMediator() {
+        if (mediator == null) {
+            throw new IllegalStateException("User is not connected to a chat server");
+        }
+        return mediator;
     }
 }
