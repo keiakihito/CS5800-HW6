@@ -12,23 +12,32 @@ public class ChatHistory implements IterableByUser {
     private final Deque<MessageMemento> sentSnapshots = new ArrayDeque<>();
 
     public void append(Message message) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (message == null) {
+            throw new IllegalArgumentException("message");
+        }
+        entries.add(message);
     }
 
     public Message lastMessage() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (entries.isEmpty()) {
+            return null;
+        }
+        return entries.get(entries.size() - 1);
     }
 
     public void saveSnapshot(MessageMemento memento) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        sentSnapshots.push(memento);
     }
 
     public MessageMemento lastSentSnapshot() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return sentSnapshots.peek();
     }
 
     @Override
     public Iterator<Message> iterator(User userToSearchWith) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return entries.stream()
+                .filter(message -> message.getSender().equals(userToSearchWith)
+                        || message.getRecipients().contains(userToSearchWith))
+                .iterator();
     }
 }
