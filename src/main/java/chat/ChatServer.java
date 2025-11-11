@@ -98,6 +98,39 @@ public class ChatServer {
     }
 
     public void undoLast(User user) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ensureRegistered(user);
+        ChatHistory history = user.getHistory();
+        Message lastMessage = requireLastMessage(history);
+        ensureSnapshotAvailable(history);
+        removeMessageEverywhere(history, lastMessage);
     }
+
+    private Message requireLastMessage(ChatHistory history) {
+        Message lastMessage = history.lastMessage();
+        if (lastMessage == null) {
+            throw new IllegalStateException("No message available to undo");
+        }
+        return lastMessage;
+    }
+
+    private void ensureSnapshotAvailable(ChatHistory history) {
+        if (history.lastSentSnapshot() == null) {
+            throw new IllegalStateException("Undo requested without snapshot");
+        }
+    }
+
+    private void removeMessageEverywhere(ChatHistory history, Message lastMessage) {
+        history.removeLastSnapshot();
+        history.removeMessage(lastMessage);
+        removeMessageFromRecipients(lastMessage);
+    }
+    
+    private void removeMessageFromRecipients(Message message) {
+        for (User recipient : message.getRecipients()) {
+            ChatHistory recipientHistory = recipient.getHistory();
+            recipientHistory.removeMessage(message);
+        }
+    }
+
+
 }
