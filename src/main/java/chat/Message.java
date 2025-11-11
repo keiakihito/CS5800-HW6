@@ -35,10 +35,11 @@ public class Message {
     }
 
     public MessageMemento createMemento() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return new MessageMemento(timestamp, content);
     }
 
-    public void restore(MessageMemento memento) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public Message restore(MessageMemento memento) {
+        Objects.requireNonNull(memento, "memento");
+        return new Message(sender, recipients, memento.getTimestamp(), memento.getContent());
     }
 }

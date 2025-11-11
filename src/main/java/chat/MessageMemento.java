@@ -21,6 +21,6 @@ public class MessageMemento {
     }
 
     public String getSummary() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return "[" + timestamp + "] " + content;
     }
 }
