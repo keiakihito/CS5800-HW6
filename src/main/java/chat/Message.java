@@ -12,10 +12,21 @@ public class Message {
     private final String content;
 
     public Message(User sender, List<User> recipients, Instant timestamp, String content) {
-        this.sender = Objects.requireNonNull(sender);
-        this.recipients = Objects.requireNonNull(recipients);
-        this.timestamp = Objects.requireNonNull(timestamp);
-        this.content = Objects.requireNonNull(content);
+        validateNotNull(sender, "sender");
+        validateNotNull(recipients, "recipients");
+        validateNotNull(timestamp, "timestamp");
+        validateNotNull(content, "content");
+        
+        this.sender = sender;
+        this.recipients = recipients;
+        this.timestamp = timestamp;
+        this.content = content;
+    }
+
+    private void validateNotNull(Object value, String parameterName) {
+        if (value == null) {
+            throw new IllegalArgumentException(parameterName + " cannot be null");
+        }
     }
 
     public User getSender() {
@@ -39,7 +50,7 @@ public class Message {
     }
 
     public Message restore(MessageMemento memento) {
-        Objects.requireNonNull(memento, "memento");
+        validateNotNull(memento, "memento");
         return new Message(sender, recipients, memento.getTimestamp(), memento.getContent());
     }
 }
