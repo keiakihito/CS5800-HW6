@@ -1,10 +1,12 @@
 package chat;
 
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -71,6 +73,34 @@ class ChatServerTest {
                 "unregistered recipient should cause failure");
     }
 
+    @Test
+    void undoLastRemovesMessageFromSenderAndRecipients() {
+        ChatServer server = new ChatServer();
+        HistoryUser sender = new HistoryUser("sender");
+        HistoryUser receiver = new HistoryUser("receiver");
+        server.register(sender);
+        server.register(receiver);
+
+        Message message = new Message(sender, List.of(receiver), Instant.EPOCH, "oops");
+        sender.getHistory().append(message);
+        sender.getHistory().saveSnapshot(message.createMemento());
+        receiver.getHistory().append(message);
+
+        server.undoLast(sender);
+
+        assertNull(sender.getHistory().lastMessage());
+        assertNull(receiver.getHistory().lastMessage());
+    }
+
+    @Test
+    void undoLastWithoutSnapshotFails() {
+        ChatServer server = new ChatServer();
+        HistoryUser sender = new HistoryUser("sender");
+        server.register(sender);
+
+        assertThrows(IllegalStateException.class, () -> server.undoLast(sender));
+    }
+
     /**
      * Message sink: dummy user that only absorbs mediator deliveries so tests can inspect sender/content.
      * Not related to sockets or concurrency—it's just a bucket to capture what ChatServer.deliver(...) emits.
@@ -87,6 +117,20 @@ class ChatServerTest {
         public void receive(Message message) {
             this.lastMessageContent = message.getContent();
             this.lastSender = message.getSender();
+        }
+    }
+
+    /**
+     * Simple user variant that records messages into its history for undo tests.
+     */
+    private static class HistoryUser extends User {
+        private HistoryUser(String name) {
+            super(name);
+        }
+
+        @Override
+        public void receive(Message message) {
+            getHistory().append(message);
         }
     }
 }
