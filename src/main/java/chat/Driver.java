@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Simple driver showcasing mediator + memento behavior. */
-public class DemoApp {
+public class Driver {
     public static void main(String[] args) {
         ChatServer server = new ChatServer();
         User aiko = new User("Aiko");
@@ -55,3 +55,44 @@ public class DemoApp {
                         message.getContent()));
     }
 }
+
+
+/*
+
+Sample output:
+
+ == Basic messaging through mediator ==
+Taro history:
+    Aiko (2025-11-11T07:16:23.546543Z) -> Hi everyone!
+    Taro (2025-11-11T07:16:23.546720Z) -> Hey Aiko
+Jiro history:
+    Aiko (2025-11-11T07:16:23.546543Z) -> Hi everyone!
+
+== Blocking demo ==
+Jiro history after blocking Taro:
+    Aiko (2025-11-11T07:16:23.546543Z) -> Hi everyone!
+
+== Undo last message (Memento)==
+Aiko history before undo:
+    Aiko (2025-11-11T07:16:23.546543Z) -> Hi everyone!
+    Taro (2025-11-11T07:16:23.546720Z) -> Hey Aiko
+    Taro (2025-11-11T07:16:23.548557Z) -> Lunch?
+    Aiko (2025-11-11T07:16:23.548687Z) -> Oops, wrong person
+Aiko history after undo:
+    Aiko (2025-11-11T07:16:23.546543Z) -> Hi everyone!
+    Taro (2025-11-11T07:16:23.546720Z) -> Hey Aiko
+    Taro (2025-11-11T07:16:23.548557Z) -> Lunch?
+
+== Iterator filtered view ==
+Aiko -> [Taro, Jiro] : Hi everyone!
+Taro -> [Aiko] : Hey Aiko
+Taro -> [Jiro, Aiko] : Lunch?
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.227 s
+[INFO] Finished at: 2025-11-10T23:16:23-08:00
+[INFO] ------------------------------------------------------------------------
+
+
+ */

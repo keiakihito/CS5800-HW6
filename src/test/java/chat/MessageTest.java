@@ -12,7 +12,7 @@ class MessageTest {
     @Test
     void createMementoCapturesContentAndTimestamp() {
         Instant now = Instant.now();
-        Message message = new Message(new User("alpha"), List.of(new User("beta")), now, "hello");
+        Message message = new Message(new User("Aiko Tokumoto"), List.of(new User("Taro Yamada")), now, "hello");
 
         MessageMemento memento = message.createMemento();
 
@@ -22,8 +22,8 @@ class MessageTest {
 
     @Test
     void restoreProducesCopyFromSnapshot() {
-        User sender = new User("alpha");
-        List<User> recipients = List.of(new User("beta"));
+        User sender = new User("Aiko Tokumoto");
+        List<User> recipients = List.of(new User("Taro Yamada"));
         Message message = new Message(sender, recipients, Instant.EPOCH, "hello");
         MessageMemento snapshot = new MessageMemento(Instant.EPOCH.plusSeconds(5), "updated");
 
