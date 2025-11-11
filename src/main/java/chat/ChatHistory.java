@@ -12,17 +12,33 @@ public class ChatHistory implements IterableByUser {
     private final Deque<MessageMemento> sentSnapshots = new ArrayDeque<>();
 
     public void append(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("message");
+        if (shouldSkipAppend(message)) {
+            return;
         }
         entries.add(message);
     }
 
+    private boolean shouldSkipAppend(Message message) {
+        if (message == null) {
+            System.out.println("Message is null, skipping append");
+            return true;
+        }
+        return false;
+    }
+
     public Message lastMessage() {
-        if (entries.isEmpty()) {
+        if (hasNoMessages()) {
             return null;
         }
+        return getLastEntry();
+    }
+
+    private Message getLastEntry() {
         return entries.get(entries.size() - 1);
+    }
+
+    private boolean hasNoMessages() {
+        return entries.isEmpty();
     }
 
     public void saveSnapshot(MessageMemento memento) {
@@ -35,9 +51,22 @@ public class ChatHistory implements IterableByUser {
 
     @Override
     public Iterator<Message> iterator(User userToSearchWith) {
-        return entries.stream()
-                .filter(message -> message.getSender().equals(userToSearchWith)
-                        || message.getRecipients().contains(userToSearchWith))
-                .iterator();
+        List<Message> filteredMessages = filterMessagesForUser(userToSearchWith);
+        return filteredMessages.iterator();
+    }
+
+    private List<Message> filterMessagesForUser(User userToSearchWith) {
+        List<Message> filteredMessages = new ArrayList<>();
+        for (Message message : entries) {
+            if (isMessageRelatedToUser(message, userToSearchWith)) {
+                filteredMessages.add(message);
+            }
+        }
+        return filteredMessages;
+    }
+
+    private boolean isMessageRelatedToUser(Message message, User userToSearchWith) {
+        return message.getSender().equals(userToSearchWith)
+                || message.getRecipients().contains(userToSearchWith);
     }
 }
